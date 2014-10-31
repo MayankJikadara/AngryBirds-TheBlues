@@ -9,6 +9,13 @@
 *****************************************************************************/
 package ab.planner;
 
+import ab.demo.NaiveAgent;
+import ab.demo.findHills;
+import ab.demo.other.ActionRobot;
+import ab.demo.other.Shot;
+import ab.vision.ABObject;
+import ab.vision.Vision;
+
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Point;
@@ -148,7 +155,9 @@ public class TrajectoryPlanner {
         double scale = getSceneScale(slingshot);
         //System.out.println("scale " + scale);
         Point ref = getReferencePoint(slingshot);
-            
+        boolean horizontal =  heuristic.isHorizontal(targetPoint);
+//        boolean isReachableThroughHills = reachable(targetPoint);
+//        System.out.println(NaiveAgent.isHill+"............isReachableThroughHills");
         double x = (targetPoint.x - ref.x) / scale;
         double y = -(targetPoint.y - ref.y) / scale;
         
@@ -188,12 +197,13 @@ public class TrajectoryPlanner {
                 bestError = error;
             }
         }
-//        if (bestError < 1000)
-//        {
-//            theta1 = actualToLaunch(theta1);
-//            // add launch points to the list
-//            pts.add(findReleasePoint(slingshot, theta1));
-//        }
+        if (bestError < 1000 )
+        {
+            theta1 = actualToLaunch(theta1);
+            // add launch points to the list
+            if(horizontal)
+            pts.add(findReleasePoint(slingshot, theta1));
+        }
         bestError = 1000;
         
         // search angles in range [t2 - BOUND, t2 + BOUND]
@@ -211,7 +221,7 @@ public class TrajectoryPlanner {
             
             // the error in y-coordinate
             double error = Math.abs(a*x*x + b*x - y);
-            if (error < bestError)
+            if (error < bestError )
             {
                 theta2 = theta;
                 bestError = error;
@@ -220,17 +230,43 @@ public class TrajectoryPlanner {
         
         theta2 = actualToLaunch(theta2);
         
-        //System.out.println("Two angles: " + Math.toDegrees(theta1) + ", " + Math.toDegrees(theta2));
+//        System.out.println("Two angles: " + Math.toDegrees(theta1) + ", " + Math.toDegrees(theta2));
             
         
         // add the higher point if it is below 75 degrees and not same as first
-        if (theta2 < Math.toRadians(75) && theta2 != theta1 && bestError < 1000)
+        if (theta2 < Math.toRadians(75) && theta2 != theta1 && bestError < 1000 && !horizontal)
             pts.add(findReleasePoint(slingshot, theta2));
         
         return pts;
     }
-   
-       
+
+//    private boolean reachable(Point target) {
+//        Vision vision = new Vision(ActionRobot.doScreenShot());
+//        Shot shot = NaiveAgent.shot;
+//        Point releasePoint = new Point(shot.getX() + shot.getDx(), shot.getY() + shot.getDy());
+//        System.out.println(releasePoint.toString()+"~~~~~~~~~~~~~~~~~~~");
+//        int traY = this.getYCoordinate(vision.findSlingshotMBR(), releasePoint, target.x);
+//        if (Math.abs(traY - target.y) > 100) {
+//            //System.out.println(Math.abs(traY - target.y));
+//            return false;
+//        }
+//        boolean result = true;
+//        java.util.List<Point> points = this.predictTrajectory(vision.findSlingshotMBR(), releasePoint);
+//        for (Point point : points) {
+//            if (point.x < 840 && point.y < 480 && point.y > 100 && point.x > 400)
+//                for (ABObject ab : vision.findHills()) {
+//                    if (
+//                            ((ab.contains(point) && !ab.contains(target)) || Math.abs(vision.getMBRVision()._scene[point.y][point.x] - 72) < 10)
+//                                    && point.x < target.x
+//                            )
+//                        return false;
+//                }
+//
+//        }
+//        return result;
+//    }
+
+
     /* the estimated tap time given the tap point
      *
      * @param   sling - bounding box of the slingshot
@@ -476,6 +512,6 @@ public class TrajectoryPlanner {
 		return getTimeByDistance(sling, release, tapPoint);
 		
 	}
-    
+
   
 }
