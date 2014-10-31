@@ -29,8 +29,7 @@ public class Vision {
 		if (visionMBR == null)
 		{
 			visionMBR = new VisionMBR(image);
-		}
-
+		} 
 		return visionMBR.findBirds();
 			
 	}
